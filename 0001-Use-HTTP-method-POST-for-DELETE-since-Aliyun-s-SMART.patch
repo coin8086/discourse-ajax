@@ -1,0 +1,37 @@
+From 3ab348792c9b8ddd3845ceafbaa0e0f18c860f6a Mon Sep 17 00:00:00 2001
+From: Robert Zhang <louirobert@gmail.com>
+Date: Thu, 29 Sep 2016 21:29:49 +0800
+Subject: [PATCH] Use HTTP method POST for DELETE since Aliyun's *SMART* CDN
+ doesn't support DELETE!
+
+---
+ app/assets/javascripts/discourse/lib/ajax.js.es6 | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/app/assets/javascripts/discourse/lib/ajax.js.es6 b/app/assets/javascripts/discourse/lib/ajax.js.es6
+index 48f259f..acd82f2 100644
+--- a/app/assets/javascripts/discourse/lib/ajax.js.es6
++++ b/app/assets/javascripts/discourse/lib/ajax.js.es6
+@@ -93,6 +93,19 @@ export function ajax() {
+       args.cache = false;
+     }
+ 
++    // Some *SMART* CDN, say AliYun, doesn't support DELETE method, so here
++    // I use POST for DELETE, that is a "method override" magic in Rack.
++    if (args.type === 'DELETE' || args.method === 'DELETE') {
++      args.type = 'POST';
++      args.method = 'POST';
++      if (!args.data) {
++        args.data = { _method: 'DELETE' };
++      }
++      else {
++        args.data._method = 'DELETE';
++      }
++    }
++
+     ajaxObj = $.ajax(Discourse.getURL(url), args);
+   };
+ 
+-- 
+1.9.1
+
